@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "AFN2.h"
+#include "AFN.h"
 
 struct Info_Archivo
 {

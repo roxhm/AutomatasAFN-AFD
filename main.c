@@ -1,4 +1,4 @@
-#include "AFN2.h"
+#include "AFN.h"
 
 int main() 
 {
