@@ -1,7 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <string.h> 
 #include "AFN.h"
+#include "Pila/Pila.h"
+
+bool Estado_EsRecorrido(struct AFN_Estado estado, bool *ptrLeido);
 
 struct Info_Archivo
 {
@@ -20,7 +23,7 @@ int Rango_Alfabeto (struct AFN_Alfabeto alfabeto)
 void Imprimir_Conjunto(conjunto c)
 {
 	putchar('{');
-	for(unsigned i = 0; i < 32; i++)
+	for(unsigned i = 0; i < 64; i++)
 	{
 		if(Conjunto_Pertenece(c, i))
 			printf("%u ", i + 1);
@@ -43,6 +46,7 @@ void Imprimir_Estado(struct AFN_Estado estado)
 	}
 	printf("\ttransiciones epsilon: ");
 	Imprimir_Conjunto(estado.transiciones_epsilon);
+	printf("\n");
 }
 
 struct Info_Archivo Obtener_Info(FILE *archivo_afn)
@@ -189,3 +193,92 @@ struct AFN_Automata* Leer_AFN (char *nombre_archivo)
 
 	return afn;
 }
+
+
+
+conjunto Cerradura_Epsilon(struct AFN_Estado estado)
+{
+	conjunto resultado = Conjunto_Vacio(); 
+	bool leido[estado.automata_contenedor -> no_estados];
+	memset(leido, 0, estado.automata_contenedor -> no_estados * sizeof(bool));
+	Pila estados_por_recorrer = Pila_Crear(estado.automata_contenedor -> no_estados); 
+
+	Pila_Empilar(estados_por_recorrer, estado.id);
+	leido[estado.id] = 1;
+	resultado = Conjunto_Agregar(resultado, estado.id);
+
+	while(!Pila_estaVacia(estados_por_recorrer))
+	{
+		struct AFN_Estado estado_top = estado.automata_contenedor -> estados[Pila_ConsultarElemento(estados_por_recorrer)]; 
+
+			if(Conjunto_EsVacio(estado_top.transiciones_epsilon) || Estado_EsRecorrido(estado_top, leido))
+			{
+				Pila_Desempilar(estados_por_recorrer); 
+			}
+			else
+			{
+				int i; 
+				bool he_encontrado_noleido = false;
+				for(i = 0; i < estado.automata_contenedor -> no_estados && !he_encontrado_noleido; i++)
+					if(Conjunto_Pertenece(estado_top.transiciones_epsilon, i) && leido[i] == 0)
+					{
+						Pila_Empilar(estados_por_recorrer, i); 
+						leido[i] = 1; 
+						resultado = Conjunto_Agregar(resultado, i);
+						he_encontrado_noleido = true;
+					}
+			}
+	}
+
+       	return resultado;
+}
+
+bool Estado_EsRecorrido(struct AFN_Estado estado, bool *ptrLeido)
+{
+	int i; 
+	for(i = 0; i < estado.automata_contenedor -> no_estados; i++)
+	{
+		if((Conjunto_Pertenece(estado.transiciones_epsilon, i) && ptrLeido[i] == 0))
+			return 0; 
+	}
+
+	return 1; 
+}
+
+conjunto Cerradura_Epsilon2(struct AFN_Estado estado)
+{
+	conjunto leido = Conjunto_Vacio();  
+	Pila estados_por_recorrer = Pila_Crear(estado.automata_contenedor -> no_estados); 
+
+	Pila_Empilar(estados_por_recorrer, estado.id);
+	leido = Conjunto_Agregar(leido, estado.id);
+
+	while(!Pila_estaVacia(estados_por_recorrer))
+	{
+		struct AFN_Estado estado_top = estado.automata_contenedor -> estados[Pila_ConsultarElemento(estados_por_recorrer)]; 
+		conjunto diferencia = Conjunto_Diferencia(estado_top.transiciones_epsilon, leido);
+
+		if(Conjunto_EsVacio(diferencia))
+			Pila_Desempilar(estados_por_recorrer); 
+		else 
+		{
+			int elemento = Conjunto_ObtenerElemento(diferencia);
+			
+			Pila_Empilar(estados_por_recorrer, elemento);
+			leido = Conjunto_Agregar(leido, elemento);
+		}
+	}
+
+	return leido; 
+}
+
+bool AFN_ConjuntoEsFinal(struct AFN_Automata* afn, conjunto c)
+{
+	int i; 
+
+	for(i = 0; i < afn -> no_estados; i++)
+		if(Conjunto_Pertenece(c, i) && afn -> estados[i].es_final)
+			return true; 
+	return false; 
+}
+

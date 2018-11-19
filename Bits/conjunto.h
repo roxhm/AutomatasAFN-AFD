@@ -110,3 +110,31 @@ conjunto Conjunto_Interseccion(conjunto, conjunto);
 conjunto Conjunto_Complemento(conjunto);
 
 
+/* Obtiene el conjunto diferencia entre dos conjuntos. 
+ * Parámetros: 
+ * 	Conjunto A. 
+ * 	Conjunto B. 
+ * Retorno: 
+ * 	Conjunto formado por los elementos de A que no están en B. 
+ * 	i.e A - B. 
+ */
+conjunto Conjunto_Diferencia(conjunto, conjunto); 
+
+// PROCEDIMIENTOS
+
+
+/* Imprime los elementos del conjunto. 
+ * Lista de números enteros que se encuentran en el conjunto.  
+ * Parámetros: 
+ * 	Conjunto c.
+ */
+void Conjunto_Imprimir(conjunto); 
+
+/*
+ * Obtiene un elemento arbitrario de un conjunto no vacío
+ * Parámetros: 
+ * 	Conjunto no vacío del cuál sacar el elemento.
+ */
+int Conjunto_ObtenerElemento(conjunto);
+
+
